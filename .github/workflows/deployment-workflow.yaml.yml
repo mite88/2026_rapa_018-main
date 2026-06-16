@@ -12,4 +12,5 @@ jobs:
     steps:
       - name : Hello, World!
         run:
+          chmod +x /home/ubuntu/deployment.ch &&
           echo "Hello, World!" >> hello.log

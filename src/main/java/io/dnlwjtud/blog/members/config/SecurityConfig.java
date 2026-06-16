@@ -1,6 +1,7 @@
 package io.dnlwjtud.blog.members.config;
 
 import io.dnlwjtud.blog.members.config.filter.TokenAuthenticationFilter;
+import io.dnlwjtud.blog.members.config.handler.AuthenticationEntryPointImpl;
 import io.dnlwjtud.blog.members.config.handler.OAuth2SuccessHandler;
 import io.dnlwjtud.blog.members.service.OAuth2MemberService;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +25,7 @@ public class SecurityConfig {
     private final TokenAuthenticationFilter tokenAuthenticationFilter;
     private final OAuth2MemberService oAuth2MemberService;
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
+    private final AuthenticationEntryPointImpl authenticationEntryPoint; // Inject AuthenticationEntryPointImpl
 
     @Bean
     public SecurityFilterChain filterChain(
@@ -42,9 +44,7 @@ public class SecurityConfig {
                         .failureHandler(failureHandler)
                 )
                 .sessionManagement(config -> config.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
-                .exceptionHandling(ex -> ex.authenticationEntryPoint(
-                        (req, resp, e) -> { /* GlobalExceptionHandler will handle this */ }
-                ))
+                .exceptionHandling(ex -> ex.authenticationEntryPoint(authenticationEntryPoint)) // Use the injected AuthenticationEntryPointImpl
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()

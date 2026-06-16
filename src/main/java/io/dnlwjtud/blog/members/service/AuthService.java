@@ -7,6 +7,7 @@ import io.dnlwjtud.blog.members.dto.MemberDetails;
 import io.dnlwjtud.blog.members.dto.TokenResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -28,7 +29,13 @@ public class AuthService {
     private long refreshExpiration;
 
     public TokenResponse login(LoginRequest request) {
-        MemberDetails details = (MemberDetails) memberService.loadUserByUsername(request.username());
+        MemberDetails details;
+        try {
+            details = (MemberDetails) memberService.loadUserByUsername(request.username());
+        } catch (UsernameNotFoundException e) {
+            throw new BusinessException(ResponseCode.USER_NOT_FOUND);
+        }
+
 
         if (!passwordEncoder.matches(request.password(), details.getPassword())) {
             throw new BusinessException(ResponseCode.INVALID_PASSWORD);

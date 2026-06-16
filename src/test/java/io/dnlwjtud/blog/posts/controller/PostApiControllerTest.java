@@ -19,7 +19,8 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 
-import static io.dnlwjtud.blog.blog.global.code.ResponseCode.POST_NOT_FOUND; // POST_NOT_FOUND static import 추가
+import static io.dnlwjtud.blog.blog.global.code.ResponseCode.POST_NOT_FOUND;
+import static io.dnlwjtud.blog.blog.global.code.ResponseCode.UNAUTHORIZED_ACCESS;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -28,6 +29,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user; // Import user
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -53,7 +55,6 @@ class PostApiControllerTest {
 
     @Test
     @DisplayName("게시글 생성 성공")
-    @WithMockUser(username = "testuser", roles = "USER")
     void savePost_Success() throws Exception {
         EditPostRequest request = new EditPostRequest("Test Title", "Test Content");
         PostDescription expectedResponse = new PostDescription(1L, "Test Title", "Test Content", "testuser", LocalDateTime.now());
@@ -61,7 +62,8 @@ class PostApiControllerTest {
         when(postService.save(any(EditPostRequest.class), anyString())).thenReturn(expectedResponse);
 
         mockMvc.perform(post(BASE_URL)
-                        .with(csrf()) // CSRF 토큰 필요
+                        .with(csrf())
+                        .with(user("testuser").roles("USER")) // Explicitly set user for the request
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
@@ -69,7 +71,7 @@ class PostApiControllerTest {
                 .andExpect(jsonPath("$.id").value(1L))
                 .andExpect(jsonPath("$.title").value("Test Title"))
                 .andExpect(jsonPath("$.content").value("Test Content"))
-                .andExpect(jsonPath("$.author").value("testuser"));
+                .andExpect(jsonPath("$.authorName").value("testuser")); // Corrected jsonPath
 
         verify(postService, times(1)).save(any(EditPostRequest.class), anyString());
     }
@@ -84,7 +86,9 @@ class PostApiControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
-                .andExpect(status().isUnauthorized()); // 401 Unauthorized
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.code").value(UNAUTHORIZED_ACCESS.getCode()));
         verify(postService, times(0)).save(any(EditPostRequest.class), anyString());
     }
 
@@ -115,7 +119,7 @@ class PostApiControllerTest {
         mockMvc.perform(get(BASE_URL + "/{id}", postId)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
-                .andExpect(status().isNotFound()) // POST_NOT_FOUND의 HttpStatus
+                .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.code").value(POST_NOT_FOUND.getCode()));
 
@@ -145,7 +149,6 @@ class PostApiControllerTest {
 
     @Test
     @DisplayName("게시글 수정 성공")
-    @WithMockUser(username = "testuser", roles = "USER")
     void updatePost_Success() throws Exception {
         Long postId = 1L;
         EditPostRequest request = new EditPostRequest("Updated Title", "Updated Content");
@@ -155,6 +158,7 @@ class PostApiControllerTest {
 
         mockMvc.perform(patch(BASE_URL + "/{id}", postId)
                         .with(csrf())
+                        .with(user("testuser").roles("USER")) // Explicitly set user for the request
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
@@ -177,21 +181,23 @@ class PostApiControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.code").value(UNAUTHORIZED_ACCESS.getCode()));
         verify(postService, times(0)).updatePost(any(EditPostRequest.class), anyLong(), anyString());
     }
 
     @Test
     @DisplayName("게시글 삭제 성공")
-    @WithMockUser(username = "testuser", roles = "USER")
     void deletePost_Success() throws Exception {
         Long postId = 1L;
         doNothing().when(postService).deletePost(postId);
 
         mockMvc.perform(delete(BASE_URL + "/{id}", postId)
-                        .with(csrf()))
+                        .with(csrf())
+                        .with(user("testuser").roles("USER"))) // Explicitly set user for the request
                 .andDo(print())
-                .andExpect(status().isNoContent()); // 204 No Content
+                .andExpect(status().isNoContent());
 
         verify(postService, times(1)).deletePost(postId);
     }
@@ -201,10 +207,15 @@ class PostApiControllerTest {
     void deletePost_Unauthorized() throws Exception {
         Long postId = 1L;
 
+        // Removed the line causing compilation error: when(postService.deletePost(anyLong())).thenThrow(new UnauthorizedAccessException());
+
         mockMvc.perform(delete(BASE_URL + "/{id}", postId)
                         .with(csrf()))
                 .andDo(print())
-                .andExpect(status().isUnauthorized());
-        verify(postService, times(0)).deletePost(postId);
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.code").value(UNAUTHORIZED_ACCESS.getCode()));
+
+        verify(postService, times(0)).deletePost(anyLong());
     }
 }

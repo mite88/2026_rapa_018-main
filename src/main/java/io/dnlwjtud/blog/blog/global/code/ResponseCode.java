@@ -22,6 +22,7 @@ public enum ResponseCode {
     INVALID_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "A003", "유효하지 않은 RefreshToken입니다."),
     REFRESH_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "A004", "만료되었거나 로그아웃된 RefreshToken입니다."),
     REFRESH_TOKEN_MISMATCH(HttpStatus.UNAUTHORIZED, "A005", "제공된 RefreshToken이 현재 유효한 RefreshToken과 일치하지 않습니다."),
+    UNAUTHORIZED_ACCESS(HttpStatus.UNAUTHORIZED, "A006", "인증되지 않은 접근입니다."), // Added for general unauthorized access
 
     // Common
     INPUT_REQUIRED(HttpStatus.BAD_REQUEST, "C001", "입력값이 필요합니다."),

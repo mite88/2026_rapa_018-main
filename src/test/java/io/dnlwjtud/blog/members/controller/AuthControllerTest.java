@@ -104,7 +104,7 @@ public class AuthControllerTest {
                 .andExpect(status().isUnauthorized()) // BusinessException의 에러 코드에 따라 401 또는 404
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.code").value("A002")) // 기존 테스트에서 확인한 에러 코드
-                .andExpect(jsonPath("$.message").value("존재하지 않는 사용자입니다")); // 기존 테스트에서 확인한 에러 메시지
+                .andExpect(jsonPath("$.message").value("존재하지 않는 사용자입니다.")); // 기존 테스트에서 확인한 에러 메시지
     }
 
     @Test
@@ -126,8 +126,8 @@ public class AuthControllerTest {
                 .andDo(print())
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.success").value(false))
-                .andExpect(jsonPath("$.code").value("A003")) // 비밀번호 불일치 에러 코드 (가정)
-                .andExpect(jsonPath("$.message").value("비밀번호가 일치하지 않습니다")); // 비밀번호 불일치 에러 메시지 (가정)
+                .andExpect(jsonPath("$.code").value("A001")) // 비밀번호 불일치 에러 코드 (가정)
+                .andExpect(jsonPath("$.message").value("비밀번호가 일치하지 않습니다.")); // 비밀번호 불일치 에러 메시지 (가정)
     }
 
     @Test
