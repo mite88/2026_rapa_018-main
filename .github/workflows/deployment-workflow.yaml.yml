@@ -6,11 +6,15 @@ on:
       - main
 
 jobs:
-
   deploy:
     runs-on: self-hosted
     steps:
-      - name : Hello, World!
-        run:
-          chmod +x /home/ubuntu/deployment.ch &&
-          echo "Hello, World!" >> hello.log
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Make Script Executable
+        run: sudo chmod +x /home/ubuntu/deployment.sh
+
+      - name: Run Deployment Script
+        # 여기에서 여러분의 스크립트 파일과 인자값(이미지명, 컨테이너명, 포트)을 전달합니다.
+        run: sudo /home/ubuntu/deployment.sh my-app-image my-container 8080
