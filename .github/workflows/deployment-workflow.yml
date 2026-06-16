@@ -10,7 +10,7 @@ jobs:
     runs-on: self-hosted
     env:
       JAVA_HOME: /usr/lib/jvm/java-25-openjdk-amd64
-      PATH: ${{ env.JAVA_HOME }}/bin:${{ env.PATH }}
+      PATH: $JAVA_HOME/bin:$PATH
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
