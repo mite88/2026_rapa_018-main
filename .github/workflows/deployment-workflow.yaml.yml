@@ -1,4 +1,4 @@
-name: deployment-workflow.yaml
+name: Deployment Workflow
 
 on:
   push:
@@ -12,9 +12,13 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      - name: Build Docker Image
+        # 코드로부터 새로운 이미지를 빌드합니다. (태그를 'my-app-image'로 지정)
+        run: sudo docker build -t my-app-image .
+
       - name: Make Script Executable
         run: sudo chmod +x /home/ubuntu/deployment.sh
 
       - name: Run Deployment Script
-        # 여기에서 여러분의 스크립트 파일과 인자값(이미지명, 컨테이너명, 포트)을 전달합니다.
+        # 빌드된 이미지명을 인자로 전달하여 배포 스크립트 실행
         run: sudo /home/ubuntu/deployment.sh my-app-image my-container 8080
