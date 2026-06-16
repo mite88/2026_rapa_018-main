@@ -1,0 +1,27 @@
+name: Deployment Workflow
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # 1. 여기서 JAR 파일을 먼저 만듭니다. (이 명령어가 실행되면 build/libs/ 폴더가 생깁니다)
+      - name: Build with Gradle
+        run: ./gradlew clean build
+
+      # 2. JAR 파일이 생긴 상태에서 도커 이미지를 만듭니다.
+      - name: Build Docker Image
+        run: sudo docker build -t my-app-image .
+
+      - name: Make Script Executable
+        run: sudo chmod +x /home/ubuntu/deployment.sh
+
+      - name: Run Deployment Script
+        run: sudo /home/ubuntu/deployment.sh my-app-image my-container 8080
